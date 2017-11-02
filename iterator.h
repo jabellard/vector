@@ -37,7 +37,8 @@ iterator_is_before(iterator_t *it1, iterator_t *it2);
 int
 iterator_is_after(iterator_t *it1, iterator_t *it2);
 
-static void safe_free(void **pp);
+static void
+safe_free(void **pp);
 
 #define sfree(p) safe_free((void**)&(p))
 

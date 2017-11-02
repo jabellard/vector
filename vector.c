@@ -1,29 +1,17 @@
 #include <string.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include "vector.h"
 
-typedef struct
-{
-	char *str;
-	int i;
-}test_data_t;
-
-
-
-//---------------------------CREATION-------------------------------
-
 vector_t *
-vector_create(vector_size_t capacity, vector_size_t obj_size, vector_data_ops_t ops)
+vector_create(size_t capacity, size_t obj_size, vector_data_ops_t ops)
 {
-	
 	vector_t *v = malloc(sizeof(vector_t));
 	if (!v)
 	{
 		return NULL;
 	} // end if
 	
-	vector_size_t _capacity = MAX(VECTOR_MIN_CAPACITY, capacity);
+	size_t _capacity = MAX(VECTOR_MIN_CAPACITY, capacity);
 	v->data = malloc(_capacity * obj_size);
 	if (!v->data)
 	{
@@ -40,7 +28,7 @@ vector_create(vector_size_t capacity, vector_size_t obj_size, vector_data_ops_t 
 } // end vector_create()
 
 vector_t *
-vector_copy(vector_t *src) // clean up before exit (avoid memory leaks)
+vector_copy(vector_t *src)
 {
 	if (!src || !src->data)
 	{
@@ -57,6 +45,7 @@ vector_copy(vector_t *src) // clean up before exit (avoid memory leaks)
 	vector_iterator_t *end = vector_end(src);
 	if (!start || !end)
 	{
+		vector_destroy(dest);
 		return NULL;
 	} // end if
 	
@@ -65,19 +54,20 @@ vector_copy(vector_t *src) // clean up before exit (avoid memory leaks)
 		void *addr = iterator_next(start);
 		if (!addr)
 		{
+			vector_destroy(dest);
 			return NULL;
 		} // end if
 		
 		int res = vector_push_back(dest, addr);
 		if (res == -1)
 		{
+			vector_destroy(dest);
 			return NULL;
 		} // end 
 	} // end while
 	
 	return dest;
 } // end vector_copy()
-
 
 vector_t *
 vector_copy_assign(vector_t *dest, vector_t *src)
@@ -96,8 +86,6 @@ vector_copy_assign(vector_t *dest, vector_t *src)
 	dest = vector_copy(src);
 	return dest;
 } // end vector_copy_assign()
-
-//--------------------------------DESTRUCTION-----------------------------
 
 int
 vector_destroy(vector_t *v)
@@ -135,10 +123,8 @@ vector_destroy(vector_t *v)
 	return 0;
 } // end vector_destroy()
 
-//----------------------------------------INSERTION
-
 int
-vector_insert_at(vector_t *v, vector_size_t i, void *obj)
+vector_insert_at(vector_t *v, size_t i, void *obj)
 {
 	if (!v || !v->data || i > v->size || !obj)
 	{
@@ -198,9 +184,8 @@ vector_push_front(vector_t *v, void *obj)
 	return vector_insert_at(v, 0, obj);
 } // end vector_push_front()
 
-//--------------------------ASSIGNMENT-------------------------------------
 int
-vector_set(vector_t *v, vector_size_t i, void *obj)
+vector_set(vector_t *v, size_t i, void *obj)
 {
 	if (!v || !v->data || i >= v->size || !obj)
 	{
@@ -232,10 +217,8 @@ vector_set_front(vector_t *v, void *obj)
 	return vector_set(v, 0, obj);
 } // end vector_set_front()
 
-//----------------------------DELETION-----------------------------
-
 int
-vector_delete_at(vector_t *v, vector_size_t i)
+vector_delete_at(vector_t *v, size_t i)
 {
 	if (!v || !v->data || i >= v->size)
 	{
@@ -286,11 +269,8 @@ vector_pop_front(vector_t *v)
 	return vector_delete_at(v, 0);
 } // end vector_pop_front()
 
-
-//-----------------------LOOKUP-----------------------------------
-
 void *
-vector_get(vector_t *v, vector_size_t i)
+vector_get(vector_t *v, size_t i)
 {
 	if (!v || !v->data || i >= v->size)
 	{
@@ -322,7 +302,7 @@ vector_back(vector_t *v)
 	return vector_get(v, v->size - 1);
 } // end vector_back()
 
-vector_size_t
+size_t
 vector_size(vector_t *v)
 {
 	if (!v || !v->data)
@@ -333,7 +313,7 @@ vector_size(vector_t *v)
 	return v->size;
 } // end vector_size()
 
-vector_size_t
+size_t
 vector_capacity(vector_t *v)
 {
 	if (!v || !v->data)
@@ -344,10 +324,8 @@ vector_capacity(vector_t *v)
 	return v->capacity;
 } // end vector_capacity()
 
-//-----------------------------ITERATORS
-
 vector_iterator_t *
-vector_get_iterator(vector_t *v, vector_size_t i)
+vector_get_iterator(vector_t *v, size_t i)
 {
 	if (!v || !v->data || i > v->size)
 	{
@@ -369,7 +347,6 @@ vector_begin(vector_t *v)
 	return vector_get_iterator(v, 0);
 } // end vector_begin()
 
-
 vector_iterator_t *
 vector_end(vector_t *v)
 {
@@ -381,7 +358,7 @@ vector_end(vector_t *v)
 	return vector_get_iterator(v, v->size);
 } // end vector_end()
 
-vector_size_t
+size_t
 vector_iterator_index(vector_t *v, vector_iterator_t *it)
 {
 	if (!v || !v->data || !it || !it->addr || v->obj_size != it->obj_size)
@@ -392,12 +369,10 @@ vector_iterator_index(vector_t *v, vector_iterator_t *it)
 	return (it->addr - v->data) / (v->obj_size);
 } // end vector_iterator_index()
 
-// ---------------------------------------MEMORY MANAGEMENT-----------------------------
-
-int
-vector_move_right(vector_t *v, vector_size_t i)
+static int
+vector_move_right(vector_t *v, size_t i)
 {
-	vector_size_t mv_bytes = (v->size - i) * v->obj_size;
+	size_t mv_bytes = (v->size - i) * v->obj_size;
 	if (mv_bytes == 0)
 	{
 		return 0;
@@ -413,10 +388,10 @@ vector_move_right(vector_t *v, vector_size_t i)
 	return 0;
 } // end vector_move_right()
 
-int
-vector_move_left(vector_t *v, vector_size_t i)
+static int
+vector_move_left(vector_t *v, size_t i)
 {
-	vector_size_t mv_bytes = (v->size - i - 1) * v->obj_size;
+	size_t mv_bytes = (v->size - i - 1) * v->obj_size;
 	if (mv_bytes == 0)
 	{
 		return 0;
@@ -432,7 +407,8 @@ vector_move_left(vector_t *v, vector_size_t i)
 	return 0;
 } // end vector_move_left()
 
-int vector_resize(vector_t *v , vector_size_t new_capacity)
+static int
+vector_resize(vector_t *v , size_t new_capacity)
 {
 	if (!v || !v->data || new_capacity < VECTOR_MIN_CAPACITY)
 	{
@@ -456,7 +432,7 @@ int vector_resize(vector_t *v , vector_size_t new_capacity)
 	return 0;
 } // end vector_resize()
 
-int 
+static int 
 vector_resize_up(vector_t *v)
 {
 	 if (!v || !v->data)
@@ -464,7 +440,7 @@ vector_resize_up(vector_t *v)
 	 	return -1;
 	 } // end if
 	 
-	 vector_size_t new_capacity = v->capacity * VECTOR_GROWTH_FACTOR;
+	 size_t new_capacity = v->capacity * VECTOR_GROWTH_FACTOR;
 	 
 	 return vector_resize(v, new_capacity);
 } // end vector_resize_up()
@@ -477,15 +453,13 @@ vector_shrink_to_fit(vector_t *v)
 		return -1;
 	} // end if
 	
-	vector_size_t new_capacity = MAX(v->size, VECTOR_MIN_CAPACITY);
+	size_t new_capacity = MAX(v->size, VECTOR_MIN_CAPACITY);
 	
 	return vector_resize(v, new_capacity);
 } // end vector_shrink_to_fit()
 
-// -----------------------------UTILITIES
-
-void *
-vector_addr_at_index(vector_t *v, vector_size_t i)
+static void *
+vector_addr_at_index(vector_t *v, size_t i)
 {
 	if (!v || !v->data || i > v->size)
 	{
@@ -495,8 +469,8 @@ vector_addr_at_index(vector_t *v, vector_size_t i)
 	return (v->data + (i * v->obj_size));
 } // end vector_addr_at_index()
 
-int 
-vector_assign(vector_t *v, vector_size_t i, void *obj)
+static int 
+vector_assign(vector_t *v, size_t i, void *obj)
 {
 	if (!v || i > v->size || !obj)
 	{
@@ -513,7 +487,8 @@ vector_assign(vector_t *v, vector_size_t i, void *obj)
 	return 0;
 } // end vector_assign()
 
-static void safe_free(void **pp)
+static void
+safe_free(void **pp)
 {
 	if (pp != NULL && *pp != NULL)
 	{
@@ -521,4 +496,3 @@ static void safe_free(void **pp)
 		*pp = NULL;
 	} // end if
 } // end safe_free()
-
