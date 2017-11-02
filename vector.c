@@ -11,10 +11,10 @@ typedef struct
 
 
 
-//---------------------------CREATION
+//---------------------------CREATION-------------------------------
 
 vector_t *
-vector_create(vector_size_t capacity, vector_size_t obj_size, data_ops_t ops)
+vector_create(vector_size_t capacity, vector_size_t obj_size, vector_data_ops_t ops)
 {
 	
 	vector_t *v = malloc(sizeof(vector_t));
@@ -60,7 +60,7 @@ vector_copy(vector_t *src) // clean up before exit (avoid memory leaks)
 		return NULL;
 	} // end if
 	
-	while (start != end)
+	while (!iterator_cmp(start, end))
 	{
 		void *addr = iterator_next(start);
 		if (!addr)
@@ -68,12 +68,14 @@ vector_copy(vector_t *src) // clean up before exit (avoid memory leaks)
 			return NULL;
 		} // end if
 		
-		int res = vector_push_back(addr);
+		int res = vector_push_back(dest, addr);
 		if (res == -1)
 		{
 			return NULL;
 		} // end 
 	} // end while
+	
+	return dest;
 } // end vector_copy()
 
 
@@ -88,14 +90,14 @@ vector_copy_assign(vector_t *dest, vector_t *src)
 	int res = vector_destroy(dest);
 	if (res == -1)
 	{
-	
+		return dest;
 	} // end if
 	
 	dest = vector_copy(src);
 	return dest;
 } // end vector_copy_assign()
 
-//--------------------------------DESTRUCTION
+//--------------------------------DESTRUCTION-----------------------------
 
 int
 vector_destroy(vector_t *v)
@@ -112,7 +114,7 @@ vector_destroy(vector_t *v)
 		return -1;
 	} // end if
 	
-	while (start != end)
+	while (!iterator_cmp(start, end))
 	{
 		void *addr = iterator_next(start);
 		if (!addr)
@@ -128,7 +130,7 @@ vector_destroy(vector_t *v)
 	} // end while
 	
 	sfree(v->data);
-	sfreev(v);
+	sfree(v);
 	
 	return 0;
 } // end vector_destroy()
@@ -136,7 +138,7 @@ vector_destroy(vector_t *v)
 //----------------------------------------INSERTION
 
 int
-vector_insert(vector_t *v, vector_size_t i, void *obj)
+vector_insert_at(vector_t *v, vector_size_t i, void *obj)
 {
 	if (!v || !v->data || i > v->size || !obj)
 	{
@@ -162,8 +164,8 @@ vector_insert(vector_t *v, vector_size_t i, void *obj)
 	
 	void *_obj = v->data_ops.ctor(obj);
 	
-	void *addr = vector_assign(v, i, _obj);
-	if (!addr)
+	res = vector_assign(v, i, _obj);
+	if (res == -1)
 	{
 		sfree(_obj);
 		return -1;
@@ -172,8 +174,7 @@ vector_insert(vector_t *v, vector_size_t i, void *obj)
 	sfree(_obj);
 	
 	(v->size)++;
-} // end vector_insert()
-
+} // end vector_insert_at()
 
 int
 vector_push_back(vector_t *v, void *obj)
@@ -183,7 +184,7 @@ vector_push_back(vector_t *v, void *obj)
 		return -1;
 	} // end if
 	
-	return vector_insert(v, v->size, obj);
+	return vector_insert_at(v, v->size, obj);
 } // end vector_push_back()
 
 int
@@ -191,12 +192,45 @@ vector_push_front(vector_t *v, void *obj)
 {
 	if (!v || !v->data)
 	{
-		return -1
+		return -1;
 	} // end if
 	
-	return vector_insert(v, 0, obj);
+	return vector_insert_at(v, 0, obj);
 } // end vector_push_front()
 
+//--------------------------ASSIGNMENT-------------------------------------
+int
+vector_set(vector_t *v, vector_size_t i, void *obj)
+{
+	if (!v || !v->data || i >= v->size || !obj)
+	{
+		return -1;
+	} // end if
+	
+	return vector_assign(v, i, obj);
+} // end vector_set()
+
+int
+vector_set_back(vector_t *v, void *obj)
+{
+	if (!v || !v->data || !obj)
+	{
+		return -1;
+	} // end if
+	
+	return vector_set(v, v->size - 1, obj);
+} // end vector_set_back()
+
+int
+vector_set_front(vector_t *v, void *obj)
+{
+	if (!v || !v->data || !obj)
+	{
+		return -1;
+	} // end if
+	
+	return vector_set(v, 0, obj);
+} // end vector_set_front()
 
 //----------------------------DELETION-----------------------------
 
@@ -220,7 +254,7 @@ vector_delete_at(vector_t *v, vector_size_t i)
 		return -1;
 	} // end 	
 	
-	int res = vector_move_left(v, i);
+	res = vector_move_left(v, i);
 	if (res == -1)
 	{
 		return -1;
@@ -238,7 +272,7 @@ vector_pop_back(vector_t *v)
 		return -1;
 	} // end if
 	
-	return vector_delete_at(v, v->size);
+	return vector_delete_at(v, v->size - 1);
 } // end vector_pop_back()
 
 int
@@ -299,6 +333,16 @@ vector_size(vector_t *v)
 	return v->size;
 } // end vector_size()
 
+vector_size_t
+vector_capacity(vector_t *v)
+{
+	if (!v || !v->data)
+	{
+		return -1;
+	} // end if
+	
+	return v->capacity;
+} // end vector_capacity()
 
 //-----------------------------ITERATORS
 
@@ -310,7 +354,8 @@ vector_get_iterator(vector_t *v, vector_size_t i)
 		return NULL;
 	} // end if
 	
-	return vector_iterator *it = iterator_create(vector_addr_at_index(v, i), v->obj_size);
+	vector_iterator_t *it = iterator_create(vector_addr_at_index(v, i), v->obj_size);
+	return it;
 } // end vector_get_iterator()
 
 vector_iterator_t *
@@ -396,7 +441,7 @@ int vector_resize(vector_t *v , vector_size_t new_capacity)
 	
 	void *old_data = v->data;
 	
-	v->data = malloc(new->capacity * v->obj_size);
+	v->data = malloc(new_capacity * v->obj_size);
 	if (!v->data)
 	{
 		return -1;
@@ -468,7 +513,7 @@ vector_assign(vector_t *v, vector_size_t i, void *obj)
 	return 0;
 } // end vector_assign()
 
-void safe_free(void **pp)
+static void safe_free(void **pp)
 {
 	if (pp != NULL && *pp != NULL)
 	{

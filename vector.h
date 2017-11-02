@@ -33,7 +33,7 @@ typedef struct _vector_t
 }vector_t;
 
 vector_t *
-vector_create(vector_size_t capacity, vector_size_t obj_size, data_ops_t ops);
+vector_create(vector_size_t capacity, vector_size_t obj_size, vector_data_ops_t ops);
 
 vector_t *
 vector_copy(vector_t *src);
@@ -45,13 +45,22 @@ int
 vector_destroy(vector_t *v);
 
 int
-vector_insert(vector_t *v, vector_size_t i, void *obj);
+vector_insert_at(vector_t *v, vector_size_t i, void *obj);
 
 int
 vector_push_back(vector_t *v, void *obj);
 
 int
 vector_push_front(vector_t *v, void *obj);
+
+int
+vector_set(vector_t *v, vector_size_t i, void *obj);
+
+int
+vector_set_back(vector_t *v, void *obj);
+
+int
+vector_set_front(vector_t *v, void *obj);
 
 int
 vector_delete_at(vector_t *v, vector_size_t i);
@@ -73,6 +82,9 @@ vector_back(vector_t *v);
 
 vector_size_t
 vector_size(vector_t *v);
+
+vector_size_t
+vector_capacity(vector_t *v);
 
 vector_iterator_t *
 vector_get_iterator(vector_t *v, vector_size_t i);
@@ -107,7 +119,7 @@ int
 vector_assign(vector_t *v, vector_size_t i, void *obj);
 
 
-void safe_free(void **pp);
+static void safe_free(void **pp);
 #define sfree(p) safe_free((void**)&(p))
 
 #endif
