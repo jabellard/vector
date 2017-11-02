@@ -33,17 +33,78 @@ typedef struct _vector_t
 }vector_t;
 
 vector_t *
-vector_create(vector_size_t capacity, vector_size_t element_size, data_ops_t ops);
+vector_create(vector_size_t capacity, vector_size_t obj_size, data_ops_t ops);
+
+vector_t *
+vector_copy(vector_t *src);
+
+vector_t *
+vector_copy_assign(vector_t *dest, vector_t *src);
 
 int
 vector_destroy(vector_t *v);
 
 int
-vector_push_back(vector_t *v, void *e);
+vector_insert(vector_t *v, vector_size_t i, void *obj);
 
-void* _vector_offset(vector_t *vector, size_t index);
+int
+vector_push_back(vector_t *v, void *obj);
 
-void _vector_assign(vector_t *vector, size_t index, void* element);
+int
+vector_push_front(vector_t *v, void *obj);
+
+int
+vector_delete_at(vector_t *v, vector_size_t i);
+
+int
+vector_pop_back(vector_t *v);
+
+int
+vector_pop_front(vector_t *v);
+
+void *
+vector_get(vector_t *v, vector_size_t i);
+
+void *
+vector_front(vector_t *v);
+
+void *
+vector_back(vector_t *v);
+
+vector_size_t
+vector_size(vector_t *v);
+
+vector_iterator_t *
+vector_get_iterator(vector_t *v, vector_size_t i);
+
+vector_iterator_t *
+vector_begin(vector_t *v);
+
+vector_iterator_t *
+vector_end(vector_t *v);
+
+vector_size_t
+vector_iterator_index(vector_t *v, vector_iterator_t *it);
+
+int
+vector_move_right(vector_t *v, vector_size_t i);
+
+int
+vector_move_left(vector_t *v, vector_size_t i);
+
+int vector_resize(vector_t *v , vector_size_t new_capacity);
+
+int 
+vector_resize_up(vector_t *v);
+
+int 
+vector_shrink_to_fit(vector_t *v);
+
+void *
+vector_addr_at_index(vector_t *v, vector_size_t i);
+
+int 
+vector_assign(vector_t *v, vector_size_t i, void *obj);
 
 
 void safe_free(void **pp);
