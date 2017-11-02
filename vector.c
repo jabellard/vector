@@ -379,9 +379,57 @@ vector_iterator_index(vector_t *v, vector_iterator_t *it)
 	return (it->addr - v->data) / (v->obj_size);
 } // end vector_iterator_index()
 
+//-----------------------------------sizing
+///////////////////////////////////////////////////////////////
+int 
+vector_resize_up(vector_t *v)
+{
+	 if (!v || !v->data)
+	 {
+	 	return -1;
+	 } // end if
+	 
+	 vector_size_t new_capacity = v->capacity * VECTOR_GROWTH_FACTOR;
+	 
+	 return vector_resize(v, new_capacity);
+} // end vector_resize_up()
 
+int 
+vector_shrink_to_fit(vector_t *v)
+{
+	if (!v || !v->data)
+	{
+		return -1;
+	} // end if
+	
+	vector_size_t new_capacity = MAX(v->size, VECTOR_MIN_CAPACITY);
+	
+	return vector_resize(v, new_capacity);
+} // end if
 
-
+int vector_resize(vector_t *v , vector_size_t new_capacity)
+{
+	if (!v || !v->data || new_capacity < VECTOR_MIN_CAPACITY)
+	{
+		return -1;
+	} // end if
+	
+	void *old_data = v->data;
+	
+	v->data = malloc(new->capacity * v->obj_size);
+	if (!v->data)
+	{
+		return -1;
+	} // end if
+	
+	memcpy(v->data, old_data, v->size * v->obj_size);
+	
+	v->capacity = new_capacity;
+	
+	free(old_data);
+	
+	return 0;
+} // end vector_resize()
 /////------------------------------errr
 //////////////////-------------------------------------------------------------
 void safe_free(void **pp)
