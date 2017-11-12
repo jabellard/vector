@@ -1,6 +1,17 @@
 #include <stdlib.h>
 #include "iterator.h"
 
+static int
+iterator_inc(iterator_t *it);
+
+static int
+iterator_dec(iterator_t *it);
+
+static void
+safe_free(void **pp);
+
+#define sfree(p) safe_free((void**)&(p))
+
 iterator_t *
 iterator_create(void *addr, size_t obj_size)
 {

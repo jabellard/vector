@@ -2,6 +2,31 @@
 #include <stdlib.h>
 #include "vector.h"
 
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+static int
+vector_move_right(vector_t *v, size_t i);
+
+static int
+vector_move_left(vector_t *v, size_t i);
+
+static int
+vector_resize(vector_t *v , size_t new_capacity);
+
+static int 
+vector_resize_up(vector_t *v);
+
+static void *
+vector_addr_at_index(vector_t *v, size_t i);
+
+static int 
+vector_assign(vector_t *v, size_t i, void *obj);
+
+static void
+safe_free(void **pp);
+
+#define sfree(p) safe_free((void**)&(p))
+
 vector_t *
 vector_create(size_t capacity, size_t obj_size, vector_data_ops_t ops)
 {
@@ -160,6 +185,7 @@ vector_insert_at(vector_t *v, size_t i, void *obj)
 	sfree(_obj);
 	
 	(v->size)++;
+	return 0;
 } // end vector_insert_at()
 
 int

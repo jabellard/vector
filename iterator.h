@@ -16,12 +16,6 @@ iterator_destroy(iterator_t **it);
 void*
 iterator_curr(iterator_t *it);
 
-static int
-iterator_inc(iterator_t *it);
-
-static int
-iterator_dec(iterator_t *it);
-
 void *
 iterator_next(iterator_t *it);
 
@@ -36,10 +30,5 @@ iterator_is_before(iterator_t *it1, iterator_t *it2);
 
 int
 iterator_is_after(iterator_t *it1, iterator_t *it2);
-
-static void
-safe_free(void **pp);
-
-#define sfree(p) safe_free((void**)&(p))
 
 #endif

@@ -5,7 +5,6 @@
 
 #define VECTOR_MIN_CAPACITY 2
 #define VECTOR_GROWTH_FACTOR 2
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 typedef iterator_t vector_iterator_t;
 typedef int (*data_dtor_func_t)(void *);
@@ -92,29 +91,7 @@ vector_end(vector_t *v);
 size_t
 vector_iterator_index(vector_t *v, vector_iterator_t *it);
 
-static int
-vector_move_right(vector_t *v, size_t i);
-
-static int
-vector_move_left(vector_t *v, size_t i);
-
-static int
-vector_resize(vector_t *v , size_t new_capacity);
-
-static int 
-vector_resize_up(vector_t *v);
-
 int 
 vector_shrink_to_fit(vector_t *v);
-
-static void *
-vector_addr_at_index(vector_t *v, size_t i);
-
-static int 
-vector_assign(vector_t *v, size_t i, void *obj);
-
-static void
-safe_free(void **pp);
-#define sfree(p) safe_free((void**)&(p))
 
 #endif
